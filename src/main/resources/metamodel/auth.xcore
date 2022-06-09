@@ -1,0 +1,44 @@
+@GenModel(
+    modelDirectory="org.example/src/java/java-gen"
+)
+package org.example.auth
+
+class User {
+     String name
+     String password
+     contains Role[] roles
+}
+
+class Role {
+    String name
+    contains Grant[] grants
+    /* Побитовая дизъюнкция всех грантов чтобы получить все доступные привилегии на объект
+    *@param resourceObject ссылка на проверяемый объект
+    */
+    op int isObjectPermitted(ResourceObject resourceObject) {
+        var i = 0
+        for (Grant grant: grants) {
+            var objectGrant = GrantType::UNKNOWN_VALUE;
+            if (grant.getResourceObject() !== null ) {
+                objectGrant = grant.grantType.getValue()
+            }
+            i = i.bitwiseOr(objectGrant)
+        }
+        return i
+    }
+}
+
+class Grant {
+    GrantType grantType
+    refers ResourceObject resourceObject
+}
+
+class ResourceObject {
+}
+
+enum GrantType {
+    Unknown =0
+    Read    =1
+    Write   =2
+    Denied  =4
+}
